@@ -1,0 +1,11 @@
+import {env} from "cloudflare:workers";
+import {cookies} from "next/headers";
+const encoder=new TextEncoder();
+function setting(name:string){return String((env as any)[name]||process.env[name]||"")}
+export const adminEmail=()=>setting("ADMIN_EMAIL").trim().toLowerCase();
+const hex=(bytes:ArrayBuffer)=>Array.from(new Uint8Array(bytes)).map(v=>v.toString(16).padStart(2,"0")).join("");
+function constantEqual(a:string,b:string){let diff=a.length^b.length;for(let i=0;i<Math.max(a.length,b.length);i++)diff|=(a.charCodeAt(i)||0)^(b.charCodeAt(i)||0);return diff===0}
+export async function passwordValid(email:string,password:string){const stored=setting("ADMIN_PASSWORD_HASH");const [iterations,salt,hash]=stored.split(":");if(!iterations||!salt||!hash||!setting("SESSION_SECRET"))return false;const key=await crypto.subtle.importKey("raw",encoder.encode(password),"PBKDF2",false,["deriveBits"]);const result=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:encoder.encode(salt),iterations:Number(iterations)},key,256);return constantEqual(hex(result),hash)&&constantEqual(email.toLowerCase(),adminEmail())}
+async function sign(payload:string){const secret=setting("SESSION_SECRET");if(secret.length<32)throw Error("Admin session unavailable");const key=await crypto.subtle.importKey("raw",encoder.encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);return hex(await crypto.subtle.sign("HMAC",key,encoder.encode(payload)))}
+export async function createSession(){const payload=btoa(JSON.stringify({email:adminEmail(),expires:Date.now()+8*3600000,nonce:crypto.randomUUID()}));return `${payload}.${await sign(payload)}`}
+export async function adminAccess(){const token=(await cookies()).get("sprout-admin")?.value;const configured=!!adminEmail()&&!!setting("ADMIN_PASSWORD_HASH")&&setting("SESSION_SECRET").length>=32;if(!token||!configured)return {allowed:false,configured,user:null};try{const [payload,signature,...rest]=token.split(".");if(rest.length||!constantEqual(await sign(payload),signature))return {allowed:false,configured,user:null};const session=JSON.parse(atob(payload));const allowed=session.email===adminEmail()&&Number.isFinite(session.expires)&&session.expires>Date.now();return {allowed,configured,user:allowed?{email:session.email}:null}}catch{return {allowed:false,configured,user:null}}}

@@ -1,0 +1,7 @@
+import { sqliteTable, text, integer, index, uniqueIndex } from "drizzle-orm/sqlite-core";
+export const loginAttempts=sqliteTable("login_attempts",{bucket:integer("bucket").primaryKey(),attempts:integer("attempts").notNull()});
+export const orders=sqliteTable("orders",{
+ id:text("id").primaryKey(),reference:text("reference").notNull(),idempotencyKey:text("idempotency_key").notNull(),payloadHash:text("payload_hash").notNull(),
+ name:text("name").notNull(),phone:text("phone").notNull(),date:text("date").notNull(),slot:text("slot").notNull(),fulfilment:text("fulfilment").notNull(),address:text("address").notNull(),notes:text("notes").notNull(),subtotal:integer("subtotal").notNull(),deliveryFee:integer("delivery_fee").notNull(),total:integer("total").notNull(),status:text("status").notNull().default("new"),createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull(),
+},t=>[uniqueIndex("idx_orders_idempotency").on(t.idempotencyKey),uniqueIndex("idx_orders_reference").on(t.reference),index("idx_orders_created").on(t.createdAt),index("idx_orders_phone_created").on(t.phone,t.createdAt)]);
+export const orderItems=sqliteTable("order_items",{id:text("id").primaryKey(),orderId:text("order_id").notNull().references(()=>orders.id),productId:text("product_id").notNull(),nameAr:text("name_ar").notNull(),nameEn:text("name_en").notNull(),unitPrice:integer("unit_price").notNull(),quantity:integer("quantity").notNull()},t=>[index("idx_order_items_order").on(t.orderId)]);
