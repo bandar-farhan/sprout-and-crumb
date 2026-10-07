@@ -1,7 +1,6 @@
-import {env} from "cloudflare:workers";
 import {cookies} from "next/headers";
 const encoder=new TextEncoder();
-function setting(name:string){return String((env as any)[name]||process.env[name]||"")}
+function setting(name:string){return String(process.env[name]||"")}
 export const adminEmail=()=>setting("ADMIN_EMAIL").trim().toLowerCase();
 const hex=(bytes:ArrayBuffer)=>Array.from(new Uint8Array(bytes)).map(v=>v.toString(16).padStart(2,"0")).join("");
 function constantEqual(a:string,b:string){let diff=a.length^b.length;for(let i=0;i<Math.max(a.length,b.length);i++)diff|=(a.charCodeAt(i)||0)^(b.charCodeAt(i)||0);return diff===0}

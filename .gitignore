@@ -28,9 +28,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# private environment files
 .env*
-!.env.example
 
 # vercel
 .vercel
@@ -45,3 +44,6 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+/data/*.db
+/data/*.db-shm
+/data/*.db-wal
