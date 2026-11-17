@@ -315,7 +315,7 @@ The application is intended as a project demonstration and local deployment solu
 
 **Bandar Farhan**
 
-Data Science Graduate | AI Engineering | Machine Learning | Full-Stack Development
+Data Science Graduate | AI Engineering | Machine Learning 
 
 [GitHub](https://github.com/bandar-farhan) · [LinkedIn](https://www.linkedin.com/in/bandar-farhan)
 
